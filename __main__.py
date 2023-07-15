@@ -1,4 +1,20 @@
-# Criar um novo DataFrame com as colunas separadas
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
+def limpar_tela():
+    input("Pressione Enter para continuar...")
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("Los Angeles Crime Dataset (2020 -- Present)\n\n")
+
+def observar_crimes_area(df):
+    # Sabemos que há colunas em que há associação de código por descrição. Vamos separar essas colunas em outro arquivo
+    id_area = df["AREA"]
+    desc_area = df["AREA NAME"]
+
+    # Criar um novo DataFrame com as colunas separadas
     cod_area = pd.DataFrame({'AREA_ID': id_area, 'AREA_NAME': desc_area})
     cod_area = cod_area.sort_values(by="AREA_ID", ascending=False) # Ordenar por código
 
