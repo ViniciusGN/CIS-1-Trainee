@@ -87,7 +87,40 @@ def observar_crimes_vitima(df):
     # Exibir o gráfico
     plt.show()
 
+def observar_tempo_crimes(df):
+    # Converter as colunas de data e horário para o tipo datetime
+    # Data de ocorrencia = DATE OCC
+    # Horario de ocorrencia = TIME OCC
+    df['DATE OCC'] = pd.to_datetime(df['DATE OCC'], format='%m/%d/%Y %I:%M:%S %p')
+    try:
+        df['TIME OCC'] = pd.to_datetime(df['TIME OCC'], format='%H%M').dt.time
+    except ValueError:
+        df['TIME OCC'] = df['TIME OCC'].astype(str).str.zfill(4)
+        df['TIME OCC'] = pd.to_datetime(df['TIME OCC'], format='%H%M').dt.time
+
+    # Agrupar os dados por data e contar as ocorrências
+    ocorrencias_por_data = df.groupby('DATE OCC').size()
+
+    # Criar um DataFrame com as datas e o número de ocorrências
+    df_ocorrencias = pd.DataFrame({'DATE OCC': ocorrencias_por_data.index, 'TIME OCC': ocorrencias_por_data.values})
+
+    # Ordenar o DataFrame pela coluna de data_ocorrencia
+    df_ocorrencias = df_ocorrencias.sort_values('DATE OCC')
+
+    # Plotar o gráfico de linha
+    plt.plot(df_ocorrencias['DATE OCC'], df_ocorrencias['TIME OCC'])
+    plt.xlabel('Data de Ocorrência')
+    plt.ylabel('Número de Ocorrências')
+    plt.title('Ocorrências ao longo do tempo')
+
+    # Rotacionar os rótulos do eixo x para melhor visualização
+    plt.xticks(rotation=45)
+
+    # Exibir o gráfico
+    plt.show()
+
 def ML_tipo_crime(df):
+
     pass
 
 def ML_qual_sera_vitima(df):
@@ -100,12 +133,12 @@ def parte_i():
     print("Parte I: Data Acquisition")
     print("Los Angeles Crime Dataset (2020 -- Present)")
 
-def menu_1(crimes):
+def menu_part2(crimes):
 #------------------------------------------------ PARTE II
     op = 1
     while (op in range(0,6)):
         print("Parte II: Data Knowing")
-        print("Para realizar uma avaliação rápida do dataset, escolha um número (1-5):\n1 - Ver as primeiras linhas")
+        print("Para realizar uma avaliação rápida do dataset, escolha um número (0-5):\n1 - Ver as primeiras linhas")
         print("2 - Ver o número de linhas e colunas do DataFrame\n3 - informações sobre as colunas e seus tipos de dados\n4 - estatísticas descritivas para as colunas numéricas")
         print("5 - Continuar\n0 - Sair do codigo.")
 
@@ -139,16 +172,16 @@ def menu_1(crimes):
             # Verificando crimes por area
             break
         elif op == 0:
-            print("Saindo do código...")
+            print("Obrigado por usar este código. Saindo do código...")
             exit()
 
-def menu_2(crimes):
+def menu_part3(crimes):
 #------------------------------------------------ PARTE III
     op2 = 1
-    while (op2 in range(0,5)):
+    while (op2 in range(0,6)):
         print("Parte III: Data Exploration")
-        print("Para realizar explorar o dataset, escolha um número (1-5):\n1 - Observar a frequencia de crimes por area")
-        print("2 - Observar a frequencia de crimes por tipo\n3 - Observar a frequencia do perfil das vítimas")
+        print("Para realizar a exploração o dataset, escolha um número (0-5):\n1 - Observar a frequencia de crimes por area")
+        print("2 - Observar a frequencia de crimes por tipo\n3 - Observar a frequencia do perfil das vítimas\n5 - Ver relação de tempo dos crimes")
         print("4 - Continuar\n0 - Sair do codigo.")
         
         try:
@@ -174,19 +207,57 @@ def menu_2(crimes):
             print("Observamos que a faixa étaria feminina mais atingida é de 20 a 30 anos.")
             print("Observamos que a faixa étaria não declarada mais atingida é a proxima de 0 anos.")
             limpar_tela()
+        elif op2 == 5:
+            observar_tempo_crimes(crimes)
+            print("Observamos que a maior parte dos crimes em LA ocorrem no período da tarde.")
+            print("Observamos que a menor parte dos crimes em LA ocorrem no período da madrugada.")
+            limpar_tela()
         elif op2<0 or op2>5:
             print("Opção inválida")
             op2 = 1
             limpar_tela()
         elif op2 == 0:
-            print("Saindo do código...")
+            print("Obrigado por usar este código. Saindo do código...")
             exit()
         elif op2 == 4:
             print("Continuando...")
             limpar_tela()
             break
 
-def menu_3(crimes):
+def menu_part4(crimes):
+    op2 = 1
+    while (op2 in range(0,5)):
+        print("Parte IV: MACHINE LEARNING")
+        print("Para aplicar conceitos de IA no dataset, escolha um número (0-4):\n1 - Predição do Tipo de Crime")
+        print("2 - Predição do tipo de Vítima\n3 - Predição do local de ocorrência")
+        print("4 - Continuar\n0 - Sair do codigo.")
+        
+        try:
+            op2 = int(input("Digite o número: "))
+        except ValueError:
+            print("Entrada inválida. Tente novamente.")
+
+        if op2 == 1:
+            ML_tipo_crime(crimes)
+            limpar_tela()
+
+        elif op2 == 2:
+            ML_qual_sera_vitima(crimes)
+            limpar_tela()
+        elif op2 == 3:
+            ML_onde_ocorrera(crimes)
+            limpar_tela()
+        elif op2<0 or op2>4:
+            print("Opção inválida")
+            op2 = 1
+            limpar_tela()
+        elif op2 == 0:
+            print("Obrigado por usar este código. Saindo do código...")
+            exit()
+        elif op2 == 4:
+            print("Continuando...")
+            limpar_tela()
+            break
     pass
 
 if __name__ == '__main__':
@@ -212,9 +283,9 @@ if __name__ == '__main__':
             print("Entrada inválida. Tente novamente.")
         if op == 1:
             limpar_tela()
-            menu_1(crimes)
-            menu_2(crimes)
-            menu_3(crimes)
+            menu_part2(crimes)
+            menu_part3(crimes)
+            menu_part4(crimes)
             limpar_tela()
         if op == 2:
             limpar_tela()
@@ -222,18 +293,18 @@ if __name__ == '__main__':
             limpar_tela()    
         if op == 3:
             limpar_tela()
-            menu_1(crimes)
+            menu_part2(crimes)
             limpar_tela()
         if op == 4:
             limpar_tela()
-            menu_2(crimes)
+            menu_part3(crimes)
             limpar_tela()
         if op == 5:
             limpar_tela()
-            menu_3(crimes)
+            menu_part4(crimes)
             limpar_tela()
         if op == 0:
-            print("Saindo do código...")
+            print("Obrigado por usar este código. Saindo do código...")
             exit()
         elif op<0 or op>5:
             print("Opção inválida")
