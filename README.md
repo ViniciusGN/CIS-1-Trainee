@@ -1,5 +1,5 @@
 # 1º Fase Trainee CIS
-Este projeto faz parte do processo Trainee do Computational Inteligence Society (CIS) da Universidade de Brasília - Semana 1. Aliuno: Vinicius Nascimento
+Este projeto faz parte do processo Trainee do Computational Inteligence Society (CIS) - IEEE, Capítulo Estudantil, - da Universidade de Brasília (UnB): Semana 1. Aluno: Vinicius Nascimento
 
 ## a) "Procurar um dataset para fazer os trabalhos":
 O dataset escolhido foi "Los Angeles Crime Dataset (2020 -- Present)" disponível no site Kaggle [(Fonte)](https://www.kaggle.com/datasets/nathaniellybrand/los-angeles-crime-dataset-2020-present?resource=download). Inicialmente gostaria de usar um dataset de dados de cibersegurança, porém não consegui encontrar um, acredito que foi pela falta de conhecimento se o dataset que achei daria para ser utilizado.
