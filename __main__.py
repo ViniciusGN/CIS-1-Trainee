@@ -3,6 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+import folium
+import webbrowser
 
 def limpar_tela():
     input("Pressione Enter para continuar...")
@@ -44,11 +48,12 @@ def observar_crimes_tipo(df):
     plt.xlabel('Tipo de Crime')
     plt.ylabel('Quantidade de Ocorrências')
 
-    plt.show()
-
     # Salvar apenas os valores únicos-> Uma bilioteca de id para tipo de crime
     cod_crime = cod_crime.drop_duplicates() # Remover duplicatas
-    cod_crime.to_csv('cod_areas.csv', index=False) # Salvar em um novo arquivo
+    cod_crime = cod_crime.sort_values(by="Crm_Id", ascending=False) # Ordenar por código
+    cod_crime.to_csv('cod_crimes.csv', index=False) # Salvar em um novo arquivo
+
+    plt.show()
 
 def observar_crimes_vitima(df):
     # Sabemos que há colunas em que há associação de código por descrição. Vamos separar essas colunas em outro arquivo
@@ -119,14 +124,90 @@ def observar_tempo_crimes(df):
     # Exibir o gráfico
     plt.show()
 
-def ML_tipo_crime(df):
+def oberservar_crimes_local(df):
+    # Criar um mapa usando a biblioteca folium
+    crime_map = folium.Map(location=[df['LAT'].mean(), df['LON'].mean()], zoom_start=12)
 
+    # Adicionar marcadores para cada ponto de latitude e longitude
+    for _, row in df.iterrows():
+        folium.Marker(location=[row['LAT'], row['LON']]).add_to(crime_map)
+    crime_map
+    crime_map.save('crime_map.html')
+    print("Abrindo o mapa em seu navegador...")
+    webbrowser.open('crime_map.html')
+
+
+def ML_tipo_crime(df):
+    print("empty")
     pass
 
 def ML_qual_sera_vitima(df):
-    pass
+    print("Aplicando o one-hot encoding na coluna 'Vict Sex' [M,F,X]")
+    one_hot_encoded = pd.get_dummies(df['Vict Sex'], prefix='Vict Sex')
+    # Concatenar os dados originais com as colunas one-hot encoding
+    data_encoded = pd.concat([df, one_hot_encoded], axis=1)
+    # Excluir a coluna original 'Vict Sex'
+    data_encoded.drop('Vict Sex', axis=1, inplace=True)
+    # Converter as colunas de data e horário para o tipo datetime
 
+    # Remover amostras com valores ausentes
+    data_encoded = data_encoded.dropna()
+
+    # Separando as features (variáveis independentes) e o target (variável dependente)
+    X = data_encoded.drop(['Vict Sex_F', "DR_NO", 'DATE OCC', 'Date Rptd', "AREA NAME",'Rpt Dist No', 'Part 1-2', 'Crm Cd Desc', 'Mocodes', 
+                        'Vict Descent', 'Premis Desc','Weapon Desc', 'Status', 'Status Desc', 'Crm Cd 1', 
+                        'Crm Cd 2', 'Crm Cd 3', 'Crm Cd 4', 'LOCATION', 'Cross Street', 'Vict Sex_-', 'Vict Sex_H', 'Vict Sex_M'],  axis=1) 
+    y = data_encoded['Vict Sex_F']
+    print("Queremos verificar se: dado as condições de um crime (arma, local, etc), qual será o sexo da vítima? (M, F, X - não declarado)")
+
+    # Separar o conjunto de treinamento e validação
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Instanciar o modelo de regressão linear
+    model = LinearRegression()
+
+    # Treinar o modelo usando o conjunto de treinamento
+    model.fit(X_train, y_train)
+
+    # Fazer previsões no conjunto de validação
+    y_pred = model.predict(X_val)
+
+    # Avaliar o desempenho do modelo
+    score = model.score(X_val, y_val)
+    print('Score do modelo:', score)
+    if score > 0.5:
+        print("O modelo está bom!")
+    else:
+        print("O modelo está ruim! Possíveis problemas: Não-linearidade, multicolinearidade, problemas de dados, etc. ")
+    print('Coeficientes do modelo:', model.coef_)
+
+def tabelas_cod(df):
+    # Separando a tabela de codigo por Premis
+    id_premis= df["Premis Cd"]
+    desc_premis = df["Premis Desc"]
+    cod_premis = pd.DataFrame({'Premis_Id': id_premis, 'Premis_Desc': desc_premis})
+    cod_premis = cod_premis.drop_duplicates() # Remover duplicatas
+    cod_premis = cod_premis.sort_values(by="Premis_Id", ascending=False) # Ordenar por código
+    cod_premis.to_csv('cod_premis.csv', index=False) # Salvar em um novo arquivo
+
+    # Separando a tabela de codigo por Arma
+    id_arma= df["Weapon Used Cd"]
+    desc_arma = df["Weapon Desc"]
+    cod_arma = pd.DataFrame({'Arma_Id': id_arma, 'Arma_Desc': desc_arma})
+    cod_arma = cod_arma.drop_duplicates() # Remover duplicatas
+    cod_arma = cod_arma.sort_values(by="Arma_Id", ascending=False) # Ordenar por código
+    cod_arma.to_csv('cod_arma.csv', index=False) # Salvar em um novo arquivo
+
+    # Separando a tabela de codigo por Status
+    id_status= df["Status"]
+    desc_status = df["Status Desc"]
+    cod_status = pd.DataFrame({'Status_Id': id_status, 'Status_Desc': desc_status})
+    cod_status = cod_status.drop_duplicates() # Remover duplicatas
+    cod_status = cod_status.sort_values(by="Status_Id", ascending=False) # Ordenar por código
+    cod_status.to_csv('cod_status.csv', index=False) # Salvar em um novo arquivo
+    
 def ML_onde_ocorrera(df):
+    print("empty")
     pass
 
 def parte_i():
@@ -178,11 +259,11 @@ def menu_part2(crimes):
 def menu_part3(crimes):
 #------------------------------------------------ PARTE III
     op2 = 1
-    while (op2 in range(0,6)):
+    while (op2 in range(0,7)):
         print("Parte III: Data Exploration")
         print("Para realizar a exploração o dataset, escolha um número (0-5):\n1 - Observar a frequencia de crimes por area")
-        print("2 - Observar a frequencia de crimes por tipo\n3 - Observar a frequencia do perfil das vítimas\n5 - Ver relação de tempo dos crimes")
-        print("4 - Continuar\n0 - Sair do codigo.")
+        print("2 - Observar a frequencia de crimes por tipo\n3 - Observar a frequencia do perfil das vítimas\n4 - Ver relação de tempo dos crimes")
+        print("5 - Observar mapa dos crimes [Muito pesado, preferivel nao executar]\n6 - Continuar\n0 - Sair do codigo.")
         
         try:
             op2 = int(input("Digite o número: "))
@@ -207,19 +288,22 @@ def menu_part3(crimes):
             print("Observamos que a faixa étaria feminina mais atingida é de 20 a 30 anos.")
             print("Observamos que a faixa étaria não declarada mais atingida é a proxima de 0 anos.")
             limpar_tela()
-        elif op2 == 5:
+        elif op2 == 4:
             observar_tempo_crimes(crimes)
             print("Observamos que a maior parte dos crimes em LA ocorrem no período da tarde.")
             print("Observamos que a menor parte dos crimes em LA ocorrem no período da madrugada.")
             limpar_tela()
-        elif op2<0 or op2>5:
+        elif op2 == 5:
+            oberservar_crimes_local(crimes)
+            limpar_tela()
+        elif op2<0 or op2>6:
             print("Opção inválida")
             op2 = 1
             limpar_tela()
         elif op2 == 0:
             print("Obrigado por usar este código. Saindo do código...")
             exit()
-        elif op2 == 4:
+        elif op2 == 6:
             print("Continuando...")
             limpar_tela()
             break
@@ -264,9 +348,10 @@ if __name__ == '__main__':
 #------------------------------------------------ PARTE I
     os.system('cls' if os.name == 'nt' else 'clear')
     parte_i()
-    print("Abrindo o DataFrame...\n\n")
+    print("\nAbrindo o DataFrame...")
     crimes = pd.read_csv('Crime_Data_from_2020_to_Present.csv') #abrir o CSV
-
+    print("DataFrame aberto com sucesso!\n\n")
+    tabelas_cod(crimes) # Criar tabelas de codigo
 # -------------------------Menu principal
     op = 1
     while (op in range(0,6)):
